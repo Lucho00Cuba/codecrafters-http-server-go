@@ -13,7 +13,7 @@ import (
 const (
 	PORT         = 4221
 	ADDR         = "0.0.0.0"
-	AllowedPaths = `^/echo/.*$|^/$`
+	AllowedPaths = `^/echo/.*$|^/$|^/user-agent$`
 )
 
 func main() {
