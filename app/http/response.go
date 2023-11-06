@@ -44,7 +44,7 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 		fmt.Println(filePath)
 		_, err := os.Stat(filePath)
 		if err != nil {
-			body = "NOT FOUND FILE"
+			//body = "NOT FOUND FILE"
 			resp.StatusCode = 404
 			resp.StatusLine = "HTTP/1.1 404 NOT FOUND"
 		} else {
@@ -52,7 +52,7 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 			content, err := ioutil.ReadFile(filePath)
 			if err != nil {
 				fmt.Printf("Error al leer el archivo %s: %v\n", filePath, err)
-				body = "FAILED READ FILE"
+				//body = "FAILED READ FILE"
 				resp.StatusCode = 500
 				resp.StatusLine = "HTTP/1.1 500 INTERNAL ERROR"
 			} else {
