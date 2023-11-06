@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -13,11 +14,15 @@ import (
 const (
 	PORT         = 4221
 	ADDR         = "0.0.0.0"
-	AllowedPaths = `^/echo/.*$|^/$|^/user-agent$`
+	AllowedPaths = `^/echo/.*$|^/$|^/files/.*$|^/user-agent$`
 )
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
+
+	directoryPtr := flag.String("directory", "foo", "a string")
+	flag.Parse()
+	fmt.Println("HTTP_DIR:", *directoryPtr)
 
 	listen_addr := fmt.Sprintf("%s:%d", ADDR, PORT)
 
@@ -34,15 +39,15 @@ func main() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
+			fmt.Println("Error accepting connection:", err.Error())
 			os.Exit(1)
 		}
-		fmt.Println("Connected: ", conn.RemoteAddr())
-		go handleConnection(conn)
+		fmt.Println("Connected:", conn.RemoteAddr())
+		go handleConnection(conn, *directoryPtr)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, dir_http string) {
 	defer conn.Close()
 
 	input := make([]byte, 1024)
@@ -57,7 +62,7 @@ func handleConnection(conn net.Conn) {
 	}
 
 	statusCode := validatePath(req.Path)
-	resp := utils.NewResponse(req, statusCode)
+	resp := utils.NewResponse(req, statusCode, dir_http)
 	resp.WriteResponse(conn)
 }
 

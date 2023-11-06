@@ -3,7 +3,9 @@ package http
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -23,7 +25,7 @@ type Response struct {
 	Body       []byte
 }
 
-func NewResponse(req Request, statusCode int) Response {
+func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 	var resp Response
 	resp.StatusCode = statusCode
 	resp.StatusLine = StatusLineMap[statusCode]
@@ -35,6 +37,22 @@ func NewResponse(req Request, statusCode int) Response {
 		body = strings.Replace(req.Path, "/echo/", "", 1)
 	} else if strings.Contains(req.Path, "/user-agent") {
 		body = req.Headers["User-Agent"]
+	} else if strings.Contains(req.Path, "/files") {
+		filename := strings.TrimPrefix(req.Path, "/files/")
+		filePath := fmt.Sprintf("%s%s", dirHTTP, filename)
+
+		_, err := os.Stat(filePath)
+		if os.IsNotExist(err) {
+			body = "NOT FOUND FILE"
+		} else {
+			resp.Headers["Content-Type"] = "application/octet-stream"
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				fmt.Printf("Error al leer el archivo %s: %v\n", filePath, err)
+				body = "FAILED READ FILE"
+			}
+			body = string(content) + CRLF
+		}
 	}
 
 	resp.Headers["Content-Length"] = fmt.Sprintf("%d", len(body))
