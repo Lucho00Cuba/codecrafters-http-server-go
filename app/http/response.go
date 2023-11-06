@@ -41,17 +41,23 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 		filename := strings.TrimPrefix(req.Path, "/files/")
 		filePath := fmt.Sprintf("%s%s", dirHTTP, filename)
 
+		fmt.Println(filePath)
 		_, err := os.Stat(filePath)
-		if os.IsNotExist(err) {
+		if err != nil {
 			body = "NOT FOUND FILE"
+			resp.StatusCode = 404
+			resp.StatusLine = "HTTP/1.1 404 NOT FOUND"
 		} else {
 			resp.Headers["Content-Type"] = "application/octet-stream"
 			content, err := ioutil.ReadFile(filePath)
 			if err != nil {
 				fmt.Printf("Error al leer el archivo %s: %v\n", filePath, err)
 				body = "FAILED READ FILE"
+				resp.StatusCode = 500
+				resp.StatusLine = "HTTP/1.1 500 INTERNAL ERROR"
+			} else {
+				body = string(content) + CRLF
 			}
-			body = string(content) + CRLF
 		}
 	}
 
