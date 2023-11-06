@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
+
+	utils "github.com/codecrafters-io/http-server-starter-go/app/http"
 )
 
 const PORT = 4221
@@ -25,21 +28,31 @@ func main() {
 	fmt.Println("Listening in ", listen_addr)
 
 	conn, err := l.Accept()
-
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
 
-	_, err = conn.Read(make([]byte, 1024))
-	if err != nil {
-		fmt.Println("Error reading: ", err.Error())
-	}
-	_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-	if err != nil {
-		fmt.Println("Error writing: ", err.Error())
-	}
+	handleConnection(conn)
+}
 
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	input := make([]byte, 1024)
+	_, err := conn.Read(input)
+	if err != nil {
+		fmt.Println("error reading connection: ", err.Error())
+		os.Exit(1)
+	}
+	req, err := utils.ParseRequest(input)
+	if err != nil {
+		fmt.Println("error parsing request: ", err.Error())
+	}
+	fmt.Printf("REQ: %v\n", req)
+	if req.Path == "/" {
+		utils.WriteResponse(conn, http.StatusOK, utils.StatusDesriptionOK)
+	} else {
+		utils.WriteResponse(conn, http.StatusNotFound, utils.StatusDescriptionNotFound)
+	}
 }
