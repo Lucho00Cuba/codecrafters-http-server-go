@@ -39,26 +39,39 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 	} else if strings.Contains(req.Path, "/user-agent") {
 		body = req.Headers["User-Agent"]
 	} else if strings.Contains(req.Path, "/files") {
+
 		filename := strings.TrimPrefix(req.Path, "/files/")
 		filePath := fmt.Sprintf("%s%s", dirHTTP, filename)
 
-		fmt.Println(filePath)
-		_, err := os.Stat(filePath)
-		if err != nil {
-			//body = "NOT FOUND FILE"
-			resp.StatusCode = 404
-			resp.StatusLine = "HTTP/1.1 404 NOT FOUND"
-		} else {
-			resp.Headers["Content-Type"] = "application/octet-stream"
-			content, err := ioutil.ReadFile(filePath)
+		if req.Method == "GET" {
+			_, err := os.Stat(filePath)
 			if err != nil {
-				fmt.Printf("Error al leer el archivo %s: %v\n", filePath, err)
-				//body = "FAILED READ FILE"
+				//body = "NOT FOUND FILE"
+				resp.StatusCode = 404
+				resp.StatusLine = "HTTP/1.1 404 NOT FOUND"
+			} else {
+				resp.Headers["Content-Type"] = "application/octet-stream"
+				content, err := ioutil.ReadFile(filePath)
+				if err != nil {
+					fmt.Printf("Error al leer el archivo %s: %v\n", filePath, err)
+					//body = "FAILED READ FILE"
+					resp.StatusCode = 500
+					resp.StatusLine = "HTTP/1.1 500 INTERNAL ERROR"
+				} else {
+					body = string(content)
+				}
+			}
+		} else if req.Method == "POST" {
+			resp.StatusCode = 201
+			resp.StatusLine = "HTTP/1.1 201 CREATED"
+			err := os.WriteFile(filePath, req.Body, 0555)
+			if err != nil {
 				resp.StatusCode = 500
 				resp.StatusLine = "HTTP/1.1 500 INTERNAL ERROR"
-			} else {
-				body = string(content)
 			}
+		} else {
+			resp.StatusCode = 405
+			resp.StatusLine = "HTTP/1.1 405 METHOD NOT ALLOWED"
 		}
 	}
 

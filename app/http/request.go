@@ -36,7 +36,9 @@ func ParseRequest(request []byte) (Request, error) {
 
 		words := bytes.Split(line, []byte(": "))
 		if len(words) != 2 {
-			return req, fmt.Errorf("expected header line to be 2 tokens, but was %d", len(words))
+			req.Body = append(words[0])
+			continue
+			//	return req, fmt.Errorf("expected header line to be 2 tokens, but was %d", len(words))
 		}
 
 		req.Headers[string(words[0])] = string(words[1])
