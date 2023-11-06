@@ -31,13 +31,15 @@ func main() {
 
 	fmt.Println("Listening in ", listen_addr)
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+		fmt.Println("Connected: ", conn.RemoteAddr())
+		go handleConnection(conn)
 	}
-
-	handleConnection(conn)
 }
 
 func handleConnection(conn net.Conn) {
