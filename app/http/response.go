@@ -33,6 +33,7 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 	resp.Headers["Content-Type"] = "text/plain"
 
 	var body string
+	body = ""
 	if strings.Contains(req.Path, "/echo/") {
 		body = strings.Replace(req.Path, "/echo/", "", 1)
 	} else if strings.Contains(req.Path, "/user-agent") {
@@ -56,7 +57,7 @@ func NewResponse(req Request, statusCode int, dirHTTP string) Response {
 				resp.StatusCode = 500
 				resp.StatusLine = "HTTP/1.1 500 INTERNAL ERROR"
 			} else {
-				body = string(content) + CRLF
+				body = string(content)
 			}
 		}
 	}
